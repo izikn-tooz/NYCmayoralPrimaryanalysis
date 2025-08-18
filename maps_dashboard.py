@@ -46,8 +46,10 @@ def download_file(remote_name: str, local_path: Path):
 # -----------------------------
 
 # HTML maps (large files via GitHub Releases)
-OVERLAY_RELEASE_URL = "https://github.com/<izikn-tooz>/<NYCmayoralPrimaryanalysis>/releases/download/v1Maps/overlay_results_top_with_slider_dots_bottom_static.html"
-
+FULL_CENTER_PATH   = download_file(
+    "overlay_results_top_with_slider_dots_bottom_static.html",
+    ASSETS_DIR / "Primary Maps/overlay_results_top_with_slider_dots_bottom_static.html"
+)
 BOTTOM_LEFT_MAP_PATH  = download_file(
     "personal_diversity_heatmap_no_water_overlap.html",
     ASSETS_DIR / "Primary Maps/personal_diversity_heatmap_no_water_overlap.html"
@@ -105,20 +107,15 @@ st.markdown(
 # =============================
 # Helpers
 # =============================
-@st.cache_data(show_spinner=True)
-def fetch_release_html(url: str, timeout: int = 20) -> str:
-    # Follow redirects, present a simple UA
-    r = requests.get(url, timeout=timeout, headers={"User-Agent": "Streamlit-Map-Fetcher"}, allow_redirects=True)
-    r.raise_for_status()
-    # GitHub may serve as application/octet-stream; we still get the HTML text
-    return r.text
+@st.cache_data(show_spinner=False)
+def load_html_text(p: Path) -> str:
+    return p.read_text(encoding="utf-8")
 
-def render_remote_map(url: str, height: int):
-    try:
-        html_text = fetch_release_html(url)
-        st_html(html_text, height=height, scrolling=False)
-    except Exception as e:
-        st.error(f"Could not load map from release URL:\n{url}\n\n{e}")
+def render_map(path: Path, height: int, width_px: int = None):
+    if not path.exists():
+        st.error(f"File not found: {path}")
+        return
+    st_html(load_html_text(path), height=height, width=width_px, scrolling=False)
 
 # =============================
 # Sidebar controls
@@ -161,7 +158,7 @@ st.markdown(
 # FULL-WIDTH (overlay map)
 # -----------------------------
 st.subheader("Overlay Results")
-render_remote_map(OVERLAY_RELEASE_URL, height=full_h)
+render_map(FULL_CENTER_PATH, height=full_h, width_px=2200)
 
 # Text beneath overlay map
 st.markdown(
