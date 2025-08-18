@@ -46,8 +46,10 @@ def download_file(remote_name: str, local_path: Path):
 # -----------------------------
 
 # HTML maps (large files via GitHub Releases)
-OVERLAY_RELEASE_URL = "https://github.com/<izikn-tooz>/<NYCmayoralPrimaryanalysis>/releases/download/v1Maps/overlay_results_top_with_slider_dots_bottom_static.html"
-
+FULL_CENTER_PATH   = download_file(
+    "overlay_results_top_with_slider_dots_bottom_static.html",
+    ASSETS_DIR / "Primary Maps/overlay_results_top_with_slider_dots_bottom_static.html"
+)
 BOTTOM_LEFT_MAP_PATH  = download_file(
     "personal_diversity_heatmap_no_water_overlap.html",
     ASSETS_DIR / "Primary Maps/personal_diversity_heatmap_no_water_overlap.html"
@@ -72,7 +74,7 @@ MULTI_WEIGHT_XLSX     = ASSETS_DIR / "Multinomial Weighted.xlsx"
 
 # Heights
 DEFAULT_FULL_HEIGHT = 400
-DEFAULT_PAIR_HEIGHT = 600
+DEFAULT_PAIR_HEIGHT = 400
 
 # =============================
 # CSS tweaks
