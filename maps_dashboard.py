@@ -46,10 +46,8 @@ def download_file(remote_name: str, local_path: Path):
 # -----------------------------
 
 # HTML maps (large files via GitHub Releases)
-FULL_CENTER_PATH   = download_file(
-    "overlay_results_top_with_slider_dots_bottom_static.html",
-    ASSETS_DIR / "Primary Maps/overlay_results_top_with_slider_dots_bottom_static.html"
-)
+OVERLAY_RELEASE_URL = "https://github.com/<izikn-tooz>/<NYCmayoralPrimaryanalysis>/releases/download/v1Maps/overlay_results_top_with_slider_dots_bottom_static.html"
+
 BOTTOM_LEFT_MAP_PATH  = download_file(
     "personal_diversity_heatmap_no_water_overlap.html",
     ASSETS_DIR / "Primary Maps/personal_diversity_heatmap_no_water_overlap.html"
@@ -73,8 +71,8 @@ MULTI_UNWEIGHTED_XLSX = ASSETS_DIR / "Multinomial Unweighted.xlsx"
 MULTI_WEIGHT_XLSX     = ASSETS_DIR / "Multinomial Weighted.xlsx"
 
 # Heights
-DEFAULT_FULL_HEIGHT = 400
-DEFAULT_PAIR_HEIGHT = 400
+DEFAULT_FULL_HEIGHT = 600
+DEFAULT_PAIR_HEIGHT = 600
 
 # =============================
 # CSS tweaks
@@ -158,8 +156,20 @@ st.markdown(
 # FULL-WIDTH (overlay map)
 # -----------------------------
 st.subheader("Overlay Results")
-render_map(FULL_CENTER_PATH, height=full_h, width_px=2200)
 
+st_html(
+    f"""
+    <iframe 
+        src="{OVERLAY_RELEASE_URL}"
+        width="100%"
+        height="{full_h}"
+        style="border:none; display:block;"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+    ></iframe>
+    """,
+    height=full_h + 10,  # tiny buffer to avoid inner scrollbars
+)
 # Text beneath overlay map
 st.markdown(
     """
