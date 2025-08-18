@@ -13,7 +13,7 @@ st.set_page_config(
     layout="wide"
 )
 
-ASSETS_DIR = Path("assets")
+ASSETS_DIR = Path(".")
 
 # -----------------------------
 # Remote files (GitHub Releases)
@@ -60,17 +60,17 @@ BOTTOM_RIGHT_MAP_PATH = download_file(
 )
 
 # Images (safe to keep in repo)
-PERSONAL_DIVERSITY_IMG = ASSETS_DIR / Person_diversity_example.png"
-PERSONAL_VS_ZOHRAN_IMG = ASSETS_DIR / "Primary Maps/Personal_Diversity_vs_Proportion_Zohran.png"
-SHANNON_VS_ZOHRAN_IMG  = ASSETS_DIR / "Primary Maps/ShannonindexvProportionZohran.png"
-QUEENS_EXAMPLE_IMG     = ASSETS_DIR / "Primary Maps/Queens Example.png"
+PERSONAL_DIVERSITY_IMG = ASSETS_DIR / "Person_diversity_example.png"
+PERSONAL_VS_ZOHRAN_IMG = ASSETS_DIR / "Personal_Diversity_vs_Proportion_Zohran.png"
+SHANNON_VS_ZOHRAN_IMG  = ASSETS_DIR / "ShannonindexvProportionZohran.png"
+QUEENS_EXAMPLE_IMG     = ASSETS_DIR / "Queens Example.png"
 
 # Excel files
-LOGIT_FULL_XLSX       = ASSETS_DIR / "Primary Maps/6 Regressions to display/LogitFull.xlsx"
-LOGIT_PARTIAL_XLSX    = ASSETS_DIR / "Primary Maps/6 Regressions to display/LogitPartial.xlsx"
-LOGIT_BIVAR_XLSX      = ASSETS_DIR / "Primary Maps/6 Regressions to display/LogitBivariate.xlsx"
-MULTI_UNWEIGHTED_XLSX = ASSETS_DIR / "Primary Maps/6 Regressions to display/Multinomial Unweighted.xlsx"
-MULTI_WEIGHT_XLSX     = ASSETS_DIR / "Primary Maps/6 Regressions to display/Multinomial Weighted.xlsx"
+LOGIT_FULL_XLSX       = ASSETS_DIR / "LogitFull.xlsx"
+LOGIT_PARTIAL_XLSX    = ASSETS_DIR / "LogitPartial.xlsx"
+LOGIT_BIVAR_XLSX      = ASSETS_DIR / "LogitBivariate.xlsx"
+MULTI_UNWEIGHTED_XLSX = ASSETS_DIR / "Multinomial Unweighted.xlsx"
+MULTI_WEIGHT_XLSX     = ASSETS_DIR / "Multinomial Weighted.xlsx"
 
 # Heights
 DEFAULT_FULL_HEIGHT = 600
