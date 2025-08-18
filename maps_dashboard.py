@@ -60,7 +60,7 @@ BOTTOM_RIGHT_MAP_PATH = download_file(
 )
 
 # Images (safe to keep in repo)
-PERSONAL_DIVERSITY_IMG = ASSETS_DIR / "Primary Maps/Person_diversity_example.png"
+PERSONAL_DIVERSITY_IMG = ASSETS_DIR / Person_diversity_example.png"
 PERSONAL_VS_ZOHRAN_IMG = ASSETS_DIR / "Primary Maps/Personal_Diversity_vs_Proportion_Zohran.png"
 SHANNON_VS_ZOHRAN_IMG  = ASSETS_DIR / "Primary Maps/ShannonindexvProportionZohran.png"
 QUEENS_EXAMPLE_IMG     = ASSETS_DIR / "Primary Maps/Queens Example.png"
