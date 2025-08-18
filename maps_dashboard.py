@@ -670,12 +670,16 @@ st.markdown("""
 The key takeaway from these results is that racial diversity has a non-negligible effect on the likelihood that a voting population will favor socialist politics. What is extremely curious about these findings however is the ‘strangeness’ of populations within public housing districts, that tend to have high personal diversity scores and Shannon indices and were yet more likely to vote for Cuomo. Take for example this image of West-Queens below.
 """)
 
-st.image(
-    "/Users/isaactasch/Desktop/New York Mayoral Race Project/Primary Maps/Queens Example.png",
-    caption="West-Queens Example: Diversity and Voting Patterns",
-    use_container_width=True
-)
+if QUEENS_EXAMPLE_IMG.exists():
+    st.image(
+        str(QUEENS_EXAMPLE_IMG),
+        caption="West-Queens Example: Diversity and Voting Patterns",
+        use_container_width=True,
+    )
+else:
+    st.error(f"Image not found: {QUEENS_EXAMPLE_IMG}. Make sure this file is in your repo at that path.")
 
 st.markdown("""
-In an area that tends to be very diverse, where almost every district voted overwhelmingly for Zohran Mamdani, the four areas that voted decidedly for Cuomo were areas with a majority of their population living within New York City public housing districts. This is a trend that has been mirrored across the city and has been additionally captured by the negative sign on the In Public Housing coefficient estimated by all five of the models above. What this means in terms of political strategy for Zohran Mamdani’s campaign, is that he should focus much of his effort within public housing districts for the remaining ten weeks before the election. Not only would this be an effective strategy given the sympathy of diverse electorates, but it would also have the potential to further galvanize the movement by speaking to voters that stand to gain the most from socialist policies. 
+In an area that tends to be very diverse, where almost every district voted overwhelmingly for Zohran Mamdani, the four areas that voted decidedly for Cuomo were areas with a majority of their population living within New York City public housing districts. 
+This is a trend that has been mirrored across the city and has been additionally captured by the negative sign on the In Public Housing coefficient estimated by all five of the models above. What this means in terms of political strategy for Zohran Mamdani’s campaign, is that he should focus much of his effort within public housing districts for the remaining ten weeks before the election. Not only would this be an effective strategy given the sympathy of diverse electorates, but it would also have the potential to further galvanize the movement by speaking to voters that stand to gain the most from socialist policies. 
 """)
