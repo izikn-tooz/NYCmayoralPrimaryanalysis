@@ -462,7 +462,7 @@ st.latex(r"(1 - 0.5)\cdot 7.7009 \cdot 0.5 \approx 1.93\%")
 
 st.markdown(
     """
-Thus the elasticity is, **51.93 / 50 = 1.0386** or roughly 4% at the midpoint. This means that for an election district with a personal diversity score of around 50%, if that election district's personal diversity score increases by .01 or 1%, there will be an increase in the liklihood that Zohran Mamdani wins that election district by just under 4%, holding all other measured variables constant. The predicted leverage of diversity on Mamdani's electorate outcomes are therefore quite large. 
+Thus the elasticity is, **51.93 / 50 = 1.0386** or roughly 4% at the midpoint. This means that for an election district with a personal diversity score of around 50%, if that election district's personal diversity score increases by .01 or 1%, there will be an increase in the liklihood that Zohran Mamdani wins that election district by just under 4%, holding all other measured variables constant. The predicted leverage of effect of diversity on Mamdani's electorate outcomes are therefore quite large.  
 """
 )
 
