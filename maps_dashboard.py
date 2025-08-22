@@ -14,6 +14,7 @@ st.set_page_config(
     layout="wide"
 )
 st.caption("An Independent Analysis by Isaac Tasch")
+st.caption("Contact: isaactasch.1@gmail.com")
 
 ASSETS_DIR = Path(".")
 
