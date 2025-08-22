@@ -246,12 +246,15 @@ with col2:
     st.markdown(
         """
         <div class="note-box">
-        Where
+        Where&nbsp;
         </div>
         """,
         unsafe_allow_html=True,
     )
+    # Inline LaTeX (still visually inline)
     st.latex(r"p_i")
+
+    # Continue the same paragraph inside the styled box
     st.markdown(
         """
         <div class="note-box">
@@ -268,7 +271,7 @@ with col2:
     st.markdown(
         """
         <div class="note-box">
-        For example, if one election district contains only two racial categories, where they are distributed equally
+        For example, if one election district contains only two racial categories, where they are distributed equally and,
         </div>
         """,
         unsafe_allow_html=True,
@@ -279,7 +282,7 @@ with col2:
     st.markdown(
         """
         <div class="note-box">
-        this election district will be considered less diverse than another election district with four racial categories where
+        This election district will be considered less diverse than another election district with four racial categories where,
         </div>
         """,
         unsafe_allow_html=True,
