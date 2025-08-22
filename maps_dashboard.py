@@ -550,7 +550,7 @@ st.write(
     "that Zohran Mamdani won in any given election district, at the midpoint probability "
     "(a 50/50 chance), is estimated to be:"
 )
-st.latex(r"(1 - 0.5)\cdot 7.7009 \cdot 0.5 \approx 1.93\%, 51.93/50 = 0.0386 or roughly 4%")
+st.latex(r"(1 - 0.5)\cdot 7.7009 \cdot 0.5 \approx 1.93\%, 51.93/50 = 0.0386% or roughly 4%")
 st.write("A nearly four percent elastic differential at the midpoint is quite large.")
 
 # -----------------------------
