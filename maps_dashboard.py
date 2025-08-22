@@ -3,6 +3,7 @@ from pathlib import Path
 from streamlit.components.v1 import html as st_html
 import pandas as pd
 import requests
+from typing import Optional
 
 # =============================
 # Config
@@ -105,17 +106,36 @@ st.markdown(
 )
 
 # =============================
-# Helpers
+# Helpers (HTML minification + immediate render)
 # =============================
-@st.cache_data(show_spinner=False)
-def load_html_text(p: Path) -> str:
-    return p.read_text(encoding="utf-8")
 
-def render_map(path: Path, height: int, width_px: int = None):
+# Optional minifier: if not available, we skip minification gracefully
+try:
+    import htmlmin
+    HAVE_HTMLMIN = True
+except Exception:
+    HAVE_HTMLMIN = False
+
+@st.cache_data(show_spinner=False)
+def load_html_text(p: Path, do_minify: bool = True) -> str:
+    """Read HTML text; optionally minify large Folium exports to trim payload."""
+    txt = p.read_text(encoding="utf-8")
+    if do_minify and HAVE_HTMLMIN and len(txt) > 200_000:
+        txt = htmlmin.minify(
+            txt,
+            remove_comments=True,
+            reduce_empty_attributes=True,
+            remove_optional_attribute_quotes=False,
+            remove_empty_space=True,
+        )
+    return txt
+
+def render_html_now(path: Path, height: int, width_px: Optional[int] = None, minify: bool = True):
+    """Inject (possibly minified) HTML into an iframe immediately."""
     if not path.exists():
         st.error(f"File not found: {path}")
         return
-    st_html(load_html_text(path), height=height, width=width_px, scrolling=False)
+    st_html(load_html_text(path, do_minify=minify), height=height, width=width_px, scrolling=False)
 
 # =============================
 # Sidebar controls
@@ -155,10 +175,10 @@ st.markdown(
 )
 
 # -----------------------------
-# FULL-WIDTH (overlay map)
+# FULL-WIDTH (overlay map) — LOAD IMMEDIATELY
 # -----------------------------
 st.subheader("Overlay Results")
-render_map(FULL_CENTER_PATH, height=full_h, width_px=2200)
+render_html_now(FULL_CENTER_PATH, height=full_h, width_px=2200, minify=True)
 
 # Text beneath overlay map
 st.markdown(
@@ -166,9 +186,7 @@ st.markdown(
     <div class="note-box">
     To measure the relative diversity of different election districts, the dot density map was overlayed with a map of New York City election districts and census tracts.  
     Since each dot placed by the simulation had a discrete location, each dot had a unique electoral district and census tract match.  
-    The racial category counts of each election district were then summed by counting the number of dots with each geographic subcategory as placed by the simulation.  
-
-    Below are two different measures of diversity according to the simulated data.
+    The racial category counts of each election district were then summed by counting the number of dots within each geographic subcategory as placed by the simulation. Below are two different measures of diversity according to the simulated data.
     </div>
     """,
     unsafe_allow_html=True,
@@ -177,13 +195,14 @@ st.markdown(
 st.markdown("---")
 
 # -----------------------------
-# BOTTOM ROW: two maps, side-by-side
+# BOTTOM ROW: two maps, side-by-side — LOAD BOTH IMMEDIATELY
 # -----------------------------
+st.subheader("Diversity Heatmaps")
 col1, col2 = st.columns(2, gap="large")
 
 with col1:
-    st.subheader("Personal Diversity Heatmap")
-    render_map(BOTTOM_LEFT_MAP_PATH, height=pair_h, width_px=1200)
+    st.markdown("##### Personal Diversity Heatmap")
+    render_html_now(BOTTOM_LEFT_MAP_PATH, height=pair_h, width_px=1200, minify=True)
 
     # Image below map
     if PERSONAL_DIVERSITY_IMG.exists():
@@ -202,8 +221,8 @@ with col1:
     )
 
 with col2:
-    st.subheader("Shannon Index Heatmap")
-    render_map(BOTTOM_RIGHT_MAP_PATH, height=pair_h, width_px=1200)
+    st.markdown("##### Shannon Index Heatmap")
+    render_html_now(BOTTOM_RIGHT_MAP_PATH, height=pair_h, width_px=1200, minify=True)
 
     st.markdown(
         """
@@ -213,13 +232,11 @@ with col2:
         """,
         unsafe_allow_html=True,
     )
-
     st.latex(r"H' = -\sum_{i=1}^{S} p_i \ln(p_i)")
-
     st.markdown(
         """
         <div class="note-box">
-        Where $p_i$ is equal to the proportion of each racial category present in a given election district.  
+        Where $p_i$  is equal to the proportion of each racial category present in a given election district.  
         Note that there is no control for evenness such that election districts with a higher number of distinct racial categories will have a higher Shannon-Diversity Index than those with fewer racial categories even if they share an equal distribution of proportions.  
 
         For example, if one election district contains only two racial categories, where they are distributed equally $p_1 = p_2 = 0.5$, this election district will be considered less diverse than another election district with four racial categories where $p_1 = p_2 = p_3 = p_4 = 0.25$.
@@ -307,7 +324,8 @@ st.markdown(
       Median income per census tract was assigned to each dot placed by the simulation with the matching unique census tract FIPS code.
       These median incomes per dot were then summed and divided according to the group of dots with the same election district code.
       The average was then assigned to that election district.
-      <i>The data on median income may be found here:</i> (link placeholder).
+      <i>The data on median income may be found here:</i> 
+      <a href="https://data.census.gov/table/" target="_blank">data.census.gov (ACS)</a>.
       <br><br>
 
       <b>% Non Native</b> – This is a census-level variable. Provided by the 2023 American Community Survey, this variable is defined by the U.S. Census Bureau as the total number of individuals “U.S. citizen by naturalization” + “Not a U.S. citizen” within each census tract.
@@ -331,13 +349,13 @@ st.markdown(
 
     Since the personal diversity score and the Shannon diversity index track with a correlation coefficient of 0.96, the models below utilize the personal diversity score as the primary independent variable for diversity since its proportionality between 0 and 1 makes its effects on vote proportions easier to interpret and because it stands to reason that the personal diversity score may be a better measure of ‘felt’ diversity than the Shannon diversity index. This is because the Shannon diversity index is calculated with probability at the election district level, whereas the personal diversity score is calculated for each person at the individual level.  
 
-    To estimate the effects of diversity on the election outcome in the New York Democratic Mayoral Primary, three models that regress the variables average personal diversity score within the election district, average census tract level percent of individuals that are multi lingual, average census tract level percent of individuals that are non-native, census tract level average median income, average census tract level number of arrests per capita, the proportion of individuals in the election district that live in public housing and finally the turnout per election district on the proportion of the democratic primary vote in each election district that was awarded to Zohran Mamdani.  
+    To estimate the effects of diversity on the election outcome in the New York Democratic Mayoral Primary, several 'full' models that regress the variables average personal diversity score within the election district, average census tract level percent of individuals that are multi lingual, average census tract level percent of individuals that are non-native, census tract level average median income, average census tract level number of arrests per capita, the proportion of individuals in the election district that live in public housing and finally the turnout per election district on the proportion of the democratic primary vote in each election district that was awarded to Zohran Mamdani are estimated.  
 
-    The partial version models the proportion of the vote that went to Zohran Mamdani per election district as a function of only the average personal diversity score of the election district, the proportion of individuals in the election district living in public housing and the turnout per election district.  
+    The partial version then models the proportion of the vote that went to Zohran Mamdani per election district as a function of only the average personal diversity score of the election district, the proportion of individuals in the election district living in public housing and the turnout per election district. These are the distinctly election-district level variables. 
 
     The final bivariate model regresses only the average personal diversity score per election district on the proportion of the vote that went to Zohran Mamdani within that election district.  
 
-    Below are two distinct models. First, a standard logit model with three parameter specifications, full, partial and bivariate that each utilize the proportion of the vote that went to Zohran Mamdani per election distrcit as the dependant variable. Then second, a multinomial logit model that uses each each election district's liklihood of choosing each Democratic Mayoral Primary candidate over Cuomo (as the baseline) as the dependant variable. The first specification of the multinomial logit model gives each election district equal weight regardless of the number of voters. The second specification incorporates weights for the number of people that voted in each election district in the estimation of the parameter's coefficients.   
+    Below are two distinct models. First, a standard logit model with three parameter specifications, full, partial and bivariate that each utilize the proportion of the vote that went to Zohran Mamdani per election distrcit as the dependant variable. Then second, a multinomial logit model with a full specification that uses each each election district's liklihood of choosing each Democratic Mayoral Primary candidate over Cuomo (as the baseline) as the dependant variable. The first specification of the multinomial logit model gives each election district equal weight regardless of the number of voters. The second specification incorporates weights for the number of people that voted in each election district in the estimation of the parameter's coefficients.   
 
     </div>
     """,
@@ -347,22 +365,12 @@ st.markdown(
 # -----------------------------
 # TABLE: show Excel like the provided file
 # -----------------------------
-
 st.markdown(
     "### Regression Results (Logit – Full Specification), Number of Observations: 3971, Psuedo R-Squared: 0.045")
-
 if LOGIT_FULL_XLSX.exists():
     try:
-        # Read only Sheet1
         df_logit = pd.read_excel(LOGIT_FULL_XLSX, engine="openpyxl", sheet_name="Sheet1")
-
-        # Optional: round numeric columns
-        # for c in df_logit.select_dtypes(include="number").columns:
-        #     df_logit[c] = df_logit[c].round(4)
-
         st.dataframe(df_logit, use_container_width=True)
-
-        # Add download option
         st.download_button(
             "Download table as CSV",
             data=df_logit.to_csv(index=False).encode("utf-8"),
@@ -377,24 +385,12 @@ else:
 # -----------------------------
 # TABLE: LogitPartial.xlsx ("sheet 1")
 # -----------------------------
-
 st.markdown(
     "### Regression Results (Logit – Partial Specification), Number of Observations: 3971, Psuedo R-Squared: 0.03688")
-
 if LOGIT_PARTIAL_XLSX.exists():
     try:
-        df_logit_partial = pd.read_excel(
-            LOGIT_PARTIAL_XLSX,
-            engine="openpyxl",
-            sheet_name="Sheet1"  # note the space & lowercase
-        )
-
-        # Optional: light numeric rounding
-        # for c in df_logit_partial.select_dtypes(include="number").columns:
-        #     df_logit_partial[c] = df_logit_partial[c].round(4)
-
+        df_logit_partial = pd.read_excel(LOGIT_PARTIAL_XLSX, engine="openpyxl", sheet_name="Sheet1")
         st.dataframe(df_logit_partial, use_container_width=True)
-
         st.download_button(
             "Download partial table as CSV",
             data=df_logit_partial.to_csv(index=False).encode("utf-8"),
@@ -409,13 +405,10 @@ else:
 # -----------------------------
 # TABLE: LogitBivariate.xlsx ("sheet 1")
 # -----------------------------
-
 st.markdown(
     "### Regression Results (Logit – Bivariate Specification), Number of Observations: 3971, Psuedo R-Squared: 0.03036")
-
 if LOGIT_BIVAR_XLSX.exists():
     try:
-        # Try common sheet names first; fall back to first sheet
         try:
             df_logit_bivar = pd.read_excel(LOGIT_BIVAR_XLSX, engine="openpyxl", sheet_name="Sheet1")
         except Exception:
@@ -423,13 +416,7 @@ if LOGIT_BIVAR_XLSX.exists():
                 df_logit_bivar = pd.read_excel(LOGIT_BIVAR_XLSX, engine="openpyxl", sheet_name="sheet 1")
             except Exception:
                 df_logit_bivar = pd.read_excel(LOGIT_BIVAR_XLSX, engine="openpyxl")  # first sheet
-
-        # Optional: round numeric columns
-        # for c in df_logit_bivar.select_dtypes(include="number").columns:
-        #     df_logit_bivar[c] = df_logit_bivar[c].round(4)
-
         st.dataframe(df_logit_bivar, use_container_width=True)
-
         st.download_button(
             "Download bivariate table as CSV",
             data=df_logit_bivar.to_csv(index=False).encode("utf-8"),
@@ -450,9 +437,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 st.latex(r"\beta_j = \frac{\partial}{\partial x_j} \log\!\left(\frac{\mu}{1 - \mu}\right)")
-
 st.latex(r"\mu_i = \Pr(Y_i = 1 \mid X_i) = \frac{e^{X_i \beta}}{1 + e^{X_i \beta}}")
 
 # =============================
@@ -463,10 +448,7 @@ st.markdown(
     Since the logit model estimates diminishing effects of the parameters at the extremes, here we find, where diversity is moderate, around a personal diversity score of **0.5**, an increase in diversity of about **1%** in the average personal diversity score of an election district is associated with an increase in in percentage points of the proportion of the vote that goes to Zohran Mamdani of approximately:
     """
 )
-
-st.latex(
-    r"\frac{\partial \mu}{\partial \text{PDS}} = \beta \cdot \mu \cdot (1 - \mu) = 2.5687 \cdot 0.5 \cdot 0.5 = 0.642 \;\;")
-
+st.latex(r"\frac{\partial \mu}{\partial \text{PDS}} = \beta \cdot \mu \cdot (1 - \mu) = 2.5687 \cdot 0.5 \cdot 0.5 = 0.642 \;\;")
 st.markdown(
     """
     Thus the elasticity of the effect of diversity (for election districts with moderate diversity) on the proportion of the vote that went to Mamdani during the June democratic Mayoral Primary in NYC is equal to **0.00642/0.5 = 0.0138**, or 1.3%. This means that for a 1% increase in the average personal diversity score of a given election district, we would expect a 1.3% increase in the proportion of votes that went to Mamdani in that election district. This indicates a high sensitivity of New York Democratic Primary voter's likelihood of voting for Zohran Mamdani to their local racial diversity. 
@@ -476,13 +458,10 @@ st.markdown(
 # -----------------------------
 # TABLE: Multinomial Unweighted.xlsx (Sheet1)
 # -----------------------------
-
 st.markdown(
     "### Regression Results (Multinomial Logit — Unweighted), Number of Observations: 3971, Psuedo R-Squared: 0.26, Within-sample accuracy: 0.744")
-
 if MULTI_UNWEIGHTED_XLSX.exists():
     try:
-        # Read Sheet1 explicitly; fall back to "sheet 1" or first sheet if needed
         try:
             df_multi_unw = pd.read_excel(MULTI_UNWEIGHTED_XLSX, engine="openpyxl", sheet_name="Sheet1")
         except Exception:
@@ -490,13 +469,7 @@ if MULTI_UNWEIGHTED_XLSX.exists():
                 df_multi_unw = pd.read_excel(MULTI_UNWEIGHTED_XLSX, engine="openpyxl", sheet_name="sheet 1")
             except Exception:
                 df_multi_unw = pd.read_excel(MULTI_UNWEIGHTED_XLSX, engine="openpyxl")  # first sheet
-
-        # Optional: round numeric columns
-        # for c in df_multi_unw.select_dtypes(include="number").columns:
-        #     df_multi_unw[c] = df_multi_unw[c].round(4)
-
         st.dataframe(df_multi_unw, use_container_width=True)
-
         st.download_button(
             "Download multinomial table as CSV",
             data=df_multi_unw.to_csv(index=False).encode("utf-8"),
@@ -533,11 +506,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.latex(r"P(Y_i = j \mid x_i) = p_{ij} = \frac{\exp(x_i^\top \beta_j)}{\sum_{m=1}^J \exp(x_i^\top \beta_m)}")
-
 st.markdown("We normalize $\\beta_J = 0$, and thus estimate")
-st.latex(
-    r"p_{ij} = \frac{\exp(x_i^\top \beta_j)}{1 + \sum_{m=1}^{J-1} \exp(x_i^\top \beta_m)}, \quad j = 1, \dots, J-1.")
-
+st.latex(r"p_{ij} = \frac{\exp(x_i^\top \beta_j)}{1 + \sum_{m=1}^{J-1} \exp(x_i^\top \beta_m)}, \quad j = 1, \dots, J-1.")
 st.markdown("Finally, we have, in log-odds form,")
 st.latex(r"\ln \!\left( \frac{P(Y_i = j)}{P(Y_i = J)} \right) = x_i^\top \beta_j.")
 
@@ -553,7 +523,6 @@ st.markdown(
 )
 st.latex(r"e^{7.7 \times 0.01} \approx 1.08")
 st.markdown("i.e. an 8% increase in the odds of Zohran Mamdani winning over Andrew Cuomo.")
-
 st.markdown(
     """
     The probability change is non-linear with reference to the original probability of Zohran Mamdani winning. 
@@ -561,15 +530,11 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 st.markdown(
     "- If there is a 20% chance Zohran Mamdani wins an election district, and that district’s average personal diversity score increases by 1%, then")
-st.latex(
-    r"\Delta p \approx 0.20 \cdot 0.80 \cdot 7.7 \cdot 0.01 = 0.0123 \quad (\approx +1.2 \text{ percentage points}).")
-
+st.latex(r"\Delta p \approx 0.20 \cdot 0.80 \cdot 7.7 \cdot 0.01 = 0.0123 \quad (\approx +1.2 \text{ percentage points}).")
 st.markdown("- If there is a 50% chance Zohran Mamdani wins an election district, then")
 st.latex(r"\Delta p \approx 0.50 \cdot 0.50 \cdot 7.7 \cdot 0.01 = 0.019 \quad (\approx +1.9 \text{ points}).")
-
 st.markdown("- If there is an 80% chance Zohran Mamdani wins an election district, then")
 st.latex(r"\Delta p \approx 0.80 \cdot 0.20 \cdot 7.7 \cdot 0.01 = 0.0123 \quad (\approx +1.2 \text{ points}).")
 
@@ -585,21 +550,16 @@ st.write(
     "that Zohran Mamdani won in any given election district, at the midpoint probability "
     "(a 50/50 chance), is estimated to be:"
 )
-
-st.latex(r"(1 - 0.5)\cdot 7.7009 \cdot 0.5 \approx 1.93\%")
-
-st.write("A nearly two percent differential at the midpoint is quite large.")
+st.latex(r"(1 - 0.5)\cdot 7.7009 \cdot 0.5 \approx 1.93\%, 51.93/50 = 0.0386 or roughly 4%")
+st.write("A nearly four percent elastic differential at the midpoint is quite large.")
 
 # -----------------------------
 # MULTINOMIAL WEIGHTED TABLE
 # -----------------------------
-
 st.markdown(
     "### Regression Results (Multinomial Logit — Unweighted), Number of Observations: 348281, Psuedo R-Squared: 0.2919, Within-sample accuracy: 0.770")
-
 if MULTI_WEIGHT_XLSX.exists():
     try:
-        # Try common sheet names first; fall back to first sheet
         try:
             df_multi_weight = pd.read_excel(MULTI_WEIGHT_XLSX, engine="openpyxl", sheet_name="Sheet1")
         except Exception:
@@ -607,13 +567,7 @@ if MULTI_WEIGHT_XLSX.exists():
                 df_multi_weight = pd.read_excel(MULTI_WEIGHT_XLSX, engine="openpyxl", sheet_name="sheet 1")
             except Exception:
                 df_multi_weight = pd.read_excel(MULTI_WEIGHT_XLSX, engine="openpyxl")  # fallback to first sheet
-
-        # Optional: round numeric columns
-        # for c in df_multi_weight.select_dtypes(include="number").columns:
-        #     df_multi_weight[c] = df_multi_weight[c].round(4)
-
         st.dataframe(df_multi_weight, use_container_width=True)
-
         st.download_button(
             "Download multinomial weighted table as CSV",
             data=df_multi_weight.to_csv(index=False).encode("utf-8"),
@@ -641,7 +595,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 st.latex(
     r"""
     \text{Weighted Accuracy} 
@@ -653,8 +606,7 @@ st.latex(
 st.markdown(
     """
     <div class="note-box">
-    This means that as the vote size of an election district increases, the model becomes significantly better at predicting the outcome.  
-    Along with the increased significance of the parameter coefficients over the unweighted model, this is strong evidence that the average personal diversity score, turnout, percent multi-lingual, and percent non-native are important determinants of a given election district’s likelihood to elect Zohran Mamdani.  
+    This means that as the vote size of an election district increases, the model becomes significantly better at predicting the outcome. Along with the increased significance of the parameter coefficients over the unweighted model, this is strong evidence that the average personal diversity score, turnout, percent multi-lingual, and percent non-native are important determinants of a given election district’s likelihood to elect Zohran Mamdani.  
 
     Insofar as votes for Zohran Mamdani represent votes for socialist political sentiment, this should be considered strong evidence that the racial, ethnic, and cultural diversity of one’s community affects their likelihood of having sympathy for socialist politics.  
 
@@ -665,7 +617,6 @@ st.markdown(
 )
 
 st.markdown("## What do these results mean for the upcoming election and Zohran Mamdani's political strategy?")
-
 st.markdown("""
 The key takeaway from these results is that racial diversity has a non-negligible effect on the likelihood that a voting population will favor socialist politics. What is extremely curious about these findings however is the ‘strangeness’ of populations within public housing districts, that tend to have high personal diversity scores and Shannon indices and were yet more likely to vote for Cuomo. Take for example this image of West-Queens below.
 """)
