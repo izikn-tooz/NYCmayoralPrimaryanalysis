@@ -224,26 +224,67 @@ with col2:
     st.markdown("##### Shannon Index Heatmap")
     render_html_now(BOTTOM_RIGHT_MAP_PATH, height=pair_h, width_px=1200, minify=True)
 
-    st.markdown(
-        """
-        <div class="note-box">
-        To determine the Shannon Diversity Index, proportions of each racial category were found by counting the number of dots that were placed in each election district by the simulation of block level racial data. The relative proportions of each racial category within each election district were then determined and applied to the Shannon-Diversity Index formula, a standard measure of categorical diversity within a geographic subset:
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.latex(r"H' = -\sum_{i=1}^{S} p_i \ln(p_i)")
-    st.markdown(
-        """
-        <div class="note-box">
-        Where $p_i$  is equal to the proportion of each racial category present in a given election district.  
-        Note that there is no control for evenness such that election districts with a higher number of distinct racial categories will have a higher Shannon-Diversity Index than those with fewer racial categories even if they share an equal distribution of proportions.  
+    # --- Shannon Index explanation (styled note-box + proper LaTeX rendering) ---
 
-        For example, if one election district contains only two racial categories, where they are distributed equally $p_1 = p_2 = 0.5$, this election district will be considered less diverse than another election district with four racial categories where $p_1 = p_2 = p_3 = p_4 = 0.25$.
+    # Lead-in + formula header (styled)
+    st.markdown(
+        """
+        <div class="note-box">
+        To determine the Shannon Diversity Index, proportions of each racial category were found by counting
+        the number of dots that were placed in each election district by the simulation of block-level racial data.
+        The relative proportions of each racial category within each election district were then determined and
+        applied to the Shannon-Diversity Index formula, a standard measure of categorical diversity within a geographic subset:
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    # The formula (LaTeX)
+    st.latex(r"H' = -\sum_{i=1}^{S} p_i \ln(p_i)")
+
+    # Definition of p_i (split so LaTeX renders while keeping note-box style)
+    st.markdown(
+        """
+        <div class="note-box">
+        Where
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.latex(r"p_i")
+    st.markdown(
+        """
+        <div class="note-box">
+        is equal to the proportion of each racial category present in a given election district.
+        Note that there is no control for evenness such that election districts with a higher number of distinct
+        racial categories will have a higher Shannon-Diversity Index than those with fewer racial categories
+        even if they share an equal distribution of proportions.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Example 1 (two categories)
+    st.markdown(
+        """
+        <div class="note-box">
+        For example, if one election district contains only two racial categories, where they are distributed equally
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.latex(r"p_1 = p_2 = 0.5")
+
+    # Example 2 (four categories)
+    st.markdown(
+        """
+        <div class="note-box">
+        this election district will be considered less diverse than another election district with four racial categories where
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.latex(r"p_1 = p_2 = p_3 = p_4 = 0.25")
 
 # -----------------------------
 # NEW ROW: two images aligned level
@@ -550,7 +591,7 @@ st.write(
     "that Zohran Mamdani won in any given election district, at the midpoint probability "
     "(a 50/50 chance), is estimated to be:"
 )
-st.latex(r"(1 - 0.5)\cdot 7.7009 \cdot 0.5 \approx 1.93\%, 51.93/50 = 0.0386% or roughly 4%")
+st.latex(r"(1 - 0.5)\cdot 7.7009 \cdot 0.5 \approx 1.93\%, 51.93/50 = 1.0386%")
 st.write("A nearly four percent elastic differential at the midpoint is quite large.")
 
 # -----------------------------
