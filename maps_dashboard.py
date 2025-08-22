@@ -13,6 +13,7 @@ st.set_page_config(
     page_title="How did diversity affect the recent New York City Democratic Mayoral Primary? Some lessons from the data.",
     layout="wide"
 )
+st.caption("An Independent Analysis by Isaac Tasch")
 
 ASSETS_DIR = Path(".")
 
@@ -245,19 +246,17 @@ with col2:
     st.markdown(
         """
         <div class="note-box">
-
-        Where $p_i$ is equal to the proportion of each racial category present in a given election district.  
+        Where p<sub>i</sub> is equal to the proportion of each racial category present in a given election district.  
         Note that there is no control for evenness such that election districts with a higher number of distinct
         racial categories will have a higher Shannon-Diversity Index than those with fewer racial categories
         even if they share an equal distribution of proportions.  
 
         For example, if one election district contains only two racial categories, where they are distributed equally
-        $p_1 = p_2 = 0.5$, this election district will be considered less diverse than another election district with
-        four racial categories where $p_1 = p_2 = p_3 = p_4 = 0.25$.
-
+        p<sub>1</sub> = p<sub>2</sub> = 0.5, this election district will be considered less diverse than another election
+        district with four racial categories where p<sub>1</sub> = p<sub>2</sub> = p<sub>3</sub> = p<sub>4</sub> = 0.25.
         </div>
         """,
-        unsafe_allow_html=False,
+        unsafe_allow_html=True,
     )
 # -----------------------------
 # NEW ROW: two images aligned level
