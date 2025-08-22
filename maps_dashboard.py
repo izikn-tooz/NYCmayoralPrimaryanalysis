@@ -242,53 +242,23 @@ with col2:
     # The formula (LaTeX)
     st.latex(r"H' = -\sum_{i=1}^{S} p_i \ln(p_i)")
 
-    # Definition of p_i (split so LaTeX renders while keeping note-box style)
     st.markdown(
         """
         <div class="note-box">
-        Where&nbsp;
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    # Inline LaTeX (still visually inline)
-    st.latex(r"p_i")
 
-    # Continue the same paragraph inside the styled box
-    st.markdown(
-        """
-        <div class="note-box">
-        is equal to the proportion of each racial category present in a given election district.
+        Where $p_i$ is equal to the proportion of each racial category present in a given election district.  
         Note that there is no control for evenness such that election districts with a higher number of distinct
         racial categories will have a higher Shannon-Diversity Index than those with fewer racial categories
-        even if they share an equal distribution of proportions.
+        even if they share an equal distribution of proportions.  
+
+        For example, if one election district contains only two racial categories, where they are distributed equally
+        $p_1 = p_2 = 0.5$, this election district will be considered less diverse than another election district with
+        four racial categories where $p_1 = p_2 = p_3 = p_4 = 0.25$.
+
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=False,
     )
-
-    # Example 1 (two categories)
-    st.markdown(
-        """
-        <div class="note-box">
-        For example, if one election district contains only two racial categories, where they are distributed equally and,
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.latex(r"p_1 = p_2 = 0.5")
-
-    # Example 2 (four categories)
-    st.markdown(
-        """
-        <div class="note-box">
-        This election district will be considered less diverse than another election district with four racial categories where,
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.latex(r"p_1 = p_2 = p_3 = p_4 = 0.25")
-
 # -----------------------------
 # NEW ROW: two images aligned level
 # -----------------------------
