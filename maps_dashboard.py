@@ -10,7 +10,7 @@ from typing import Optional
 # =============================
 
 st.set_page_config(
-    page_title="How did diversity affect the recent New York City Democratic Mayoral Primary? Some lessons from the data.",
+    page_title="How did diversity affect the recent New York City Democratic Mayoral Primary? Some lessons from the data:",
     layout="wide"
 )
 st.caption("This is an independent analysis by Isaac Tasch")
