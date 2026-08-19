@@ -34,7 +34,7 @@ def download_file(remote_name: str, local_path: Path):
     try:
         url = DOWNLOAD_BASE + remote_name
         st.info(f"Fetching {remote_name} from GitHub Releases…")
-        resp = requests.get(url)
+        resp = requests.get(url, timeout=(10, 30))  # (connect, read) seconds
         resp.raise_for_status()
         local_path.parent.mkdir(parents=True, exist_ok=True)
         with open(local_path, "wb") as f:
