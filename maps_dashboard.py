@@ -5,10 +5,6 @@ import pandas as pd
 import requests
 from typing import Optional
 
-# =============================
-# Config
-# =============================
-
 st.set_page_config(
     page_title="How did diversity affect the recent New York City Democratic Mayoral Primary? Some lessons from the data:",
     layout="wide"
@@ -18,12 +14,9 @@ st.caption("Contact: isaactasch.1@gmail.com")
 
 ASSETS_DIR = Path(".")
 
-# -----------------------------
-# Remote files (GitHub Releases)
-# -----------------------------
 USER   = "izikn-tooz"
 REPO   = "NYCmayoralPrimaryanalysis"
-TAG    = "v1Maps"  # <- your published release tag
+TAG    = "v1Maps"
 
 DOWNLOAD_BASE = f"https://github.com/{USER}/{REPO}/releases/download/{TAG}/"
 
@@ -34,7 +27,7 @@ def download_file(remote_name: str, local_path: Path):
     try:
         url = DOWNLOAD_BASE + remote_name
         st.info(f"Fetching {remote_name} from GitHub Releases…")
-        resp = requests.get(url, timeout=(10, 30))  # (connect, read) seconds
+        resp = requests.get(url, timeout=(10, 30))
         resp.raise_for_status()
         local_path.parent.mkdir(parents=True, exist_ok=True)
         with open(local_path, "wb") as f:
@@ -44,11 +37,6 @@ def download_file(remote_name: str, local_path: Path):
         st.error(f"Failed to fetch {remote_name} from {url}: {e}")
     return local_path
 
-# -----------------------------
-# Paths
-# -----------------------------
-
-# HTML maps (large files via GitHub Releases)
 FULL_CENTER_PATH   = download_file(
     "overlay_results_top_with_slider_dots_bottom_static.html",
     ASSETS_DIR / "Primary Maps/overlay_results_top_with_slider_dots_bottom_static.html"
@@ -62,26 +50,20 @@ BOTTOM_RIGHT_MAP_PATH = download_file(
     ASSETS_DIR / "Primary Maps/shannon_index_heatmap_no_water_overlap.html"
 )
 
-# Images (safe to keep in repo)
 PERSONAL_DIVERSITY_IMG = ASSETS_DIR / "Person_diversity_example.png"
 PERSONAL_VS_ZOHRAN_IMG = ASSETS_DIR / "Personal_Diversity_vs_Proportion_Zohran.png"
 SHANNON_VS_ZOHRAN_IMG  = ASSETS_DIR / "ShannonindexvProportionZohran.png"
 QUEENS_EXAMPLE_IMG     = ASSETS_DIR / "Queens Example.png"
 
-# Excel files
 LOGIT_FULL_XLSX       = ASSETS_DIR / "LogitFull.xlsx"
 LOGIT_PARTIAL_XLSX    = ASSETS_DIR / "LogitPartial.xlsx"
 LOGIT_BIVAR_XLSX      = ASSETS_DIR / "LogitBivariate.xlsx"
 MULTI_UNWEIGHTED_XLSX = ASSETS_DIR / "Multinomial Unweighted.xlsx"
 MULTI_WEIGHT_XLSX     = ASSETS_DIR / "Multinomial Weighted.xlsx"
 
-# Heights
 DEFAULT_FULL_HEIGHT = 600
 DEFAULT_PAIR_HEIGHT = 600
 
-# =============================
-# CSS tweaks (kept minimal; no note-box styling used)
-# =============================
 st.markdown(
     """
     <style>
@@ -98,11 +80,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# =============================
-# Helpers (HTML minification + immediate render)
-# =============================
-
-# Optional minifier: if not available, we skip minification gracefully
 try:
     import htmlmin
     HAVE_HTMLMIN = True
@@ -130,18 +107,12 @@ def render_html_now(path: Path, height: int, width_px: Optional[int] = None, min
         return
     st_html(load_html_text(path, do_minify=minify), height=height, width=width_px, scrolling=False)
 
-# =============================
-# Sidebar controls
-# =============================
 st.sidebar.header("Display Settings")
 full_h = st.sidebar.slider("Full-width map height (px)", 400, 1600, DEFAULT_FULL_HEIGHT, 10)
 pair_h = st.sidebar.slider("Bottom pair height (px)", 300, 1400, DEFAULT_PAIR_HEIGHT, 10)
 if st.sidebar.button("🔄 Refresh maps"):
     load_html_text.clear()
 
-# =============================
-# Page
-# =============================
 st.markdown(
     "<h1 style='text-align: center;'>How did diversity affect the recent New York City Democratic Mayoral Primary? Some lessons from the data.</h1>",
     unsafe_allow_html=True
@@ -163,9 +134,6 @@ With this reality in mind, this statistical brief is here to suggest that one of
 Below is a map of New York public housing tracts and electoral districts, along with how those districts voted in the recent democratic mayoral primary, overlayed with a dot-density graph of racial distribution at the block-level provided by the 2020 Decennial Census conducted by the U.S. Census Bureau. Dots were placed randomly within each block-level boundary. Each dot represents 40 respondents to the 2020 racial survey. With each block-level geographic subset containing a count of each racial category, each dot was placed by a simulation within that block subset accounting for set of 40 respondents with the same racial and block category.
 """)
 
-# -----------------------------
-# FULL-WIDTH (overlay map) — LOAD IMMEDIATELY
-# -----------------------------
 st.subheader("Overlay Results")
 render_html_now(FULL_CENTER_PATH, height=full_h, width_px=2200, minify=True)
 
@@ -179,9 +147,6 @@ The racial category counts of each election district were then summed by countin
 
 st.markdown("---")
 
-# -----------------------------
-# BOTTOM ROW: two maps, side-by-side — LOAD BOTH IMMEDIATELY
-# -----------------------------
 st.subheader("Diversity Heatmaps")
 col1, col2 = st.columns(2, gap="large")
 
@@ -228,9 +193,6 @@ district with four racial categories where $p_1 = p_2 = p_3 = p_4 = 0.25$.
 """
     )
 
-# -----------------------------
-# NEW ROW: two images aligned level
-# -----------------------------
 img_col1, img_col2 = st.columns(2, gap="large")
 
 with img_col1:
@@ -245,9 +207,6 @@ with img_col2:
     else:
         st.error(f"Image not found: {SHANNON_VS_ZOHRAN_IMG}")
 
-# -----------------------------
-# Centered header below both columns
-# -----------------------------
 st.markdown(
     "<h2 style='text-align:center; margin-top:30px;'>"
     "Five Models to Estimate the Effect of Diversity on Zohran Mamdani’s Primary Results by Election District"
@@ -255,9 +214,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# -----------------------------
-# Explanatory text below header
-# -----------------------------
 st.markdown(
     """
 One of the principal challenges in estimating such effects is the issue of aggregation and the ecological fallacy that arises from the chosen aggregation method for geographically correlated parameters.  
@@ -268,9 +224,6 @@ A description of each parameter is below:
 """
 )
 
-# -----------------------------
-# Variable definitions (all plain markdown with links)
-# -----------------------------
 st.markdown(
     """
 **Personal Diversity Score** – As described above, these data were provided by the 2020 Decennial Census conducted by the U.S. Census Bureau.
@@ -314,9 +267,6 @@ We then fit a multinomial logit with Cuomo as baseline: (1) unweighted by voters
 """
 )
 
-# -----------------------------
-# TABLES
-# -----------------------------
 st.markdown("### Regression Results (Logit – Full Specification), Number of Observations: 3971, Pseudo R-Squared: 0.045")
 if LOGIT_FULL_XLSX.exists():
     try:
@@ -358,7 +308,7 @@ if LOGIT_BIVAR_XLSX.exists():
             try:
                 df_logit_bivar = pd.read_excel(LOGIT_BIVAR_XLSX, engine="openpyxl", sheet_name="sheet 1")
             except Exception:
-                df_logit_bivar = pd.read_excel(LOGIT_BIVAR_XLSX, engine="openpyxl")  # first sheet
+                df_logit_bivar = pd.read_excel(LOGIT_BIVAR_XLSX, engine="openpyxl")
         st.dataframe(df_logit_bivar, use_container_width=True)
         st.download_button(
             "Download bivariate table as CSV",
@@ -393,9 +343,6 @@ Thus the elasticity (around 0.5) is **0.00642/0.5 = 0.0138** (≈ **1.4%**).
 """
 )
 
-# -----------------------------
-# Multinomial
-# -----------------------------
 st.markdown("### Regression Results (Multinomial Logit — Unweighted), Number of Observations: 3971, Pseudo R-Squared: 0.26, Within-sample accuracy: 0.744")
 if MULTI_UNWEIGHTED_XLSX.exists():
     try:
@@ -405,7 +352,7 @@ if MULTI_UNWEIGHTED_XLSX.exists():
             try:
                 df_multi_unw = pd.read_excel(MULTI_UNWEIGHTED_XLSX, engine="openpyxl", sheet_name="sheet 1")
             except Exception:
-                df_multi_unw = pd.read_excel(MULTI_UNWEIGHTED_XLSX, engine="openpyxl")  # first sheet
+                df_multi_unw = pd.read_excel(MULTI_UNWEIGHTED_XLSX, engine="openpyxl")
         st.dataframe(df_multi_unw, use_container_width=True)
         st.download_button(
             "Download multinomial table as CSV",
@@ -466,9 +413,6 @@ Thus the elasticity is, **51.93 / 50 = 1.0386** or roughly 4% at the midpoint. T
 """
 )
 
-# -----------------------------
-# MULTINOMIAL WEIGHTED TABLE
-# -----------------------------
 st.markdown("### Regression Results (Multinomial Logit — Weighted), Number of Observations: 348,281, Pseudo R-Squared: 0.2919, Within-sample accuracy: 0.770")
 if MULTI_WEIGHT_XLSX.exists():
     try:
@@ -478,7 +422,7 @@ if MULTI_WEIGHT_XLSX.exists():
             try:
                 df_multi_weight = pd.read_excel(MULTI_WEIGHT_XLSX, engine="openpyxl", sheet_name="sheet 1")
             except Exception:
-                df_multi_weight = pd.read_excel(MULTI_WEIGHT_XLSX, engine="openpyxl")  # fallback to first sheet
+                df_multi_weight = pd.read_excel(MULTI_WEIGHT_XLSX, engine="openpyxl")
         st.dataframe(df_multi_weight, use_container_width=True)
         st.download_button(
             "Download multinomial weighted table as CSV",
